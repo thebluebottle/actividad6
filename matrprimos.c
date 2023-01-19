@@ -3,9 +3,10 @@
 #include <unistd.h>
 #include <math.h>
 #include <sys/time.h>
+#include <pthread.h>
 
 #define SIZE 4000
-
+#define NTHREADS 4
 #define INICIAL 900000000
 #define FINAL 1000000000
 
@@ -14,13 +15,14 @@ int mat[SIZE][SIZE];
 void initmat(int mat[][SIZE]);
 void printnonzeroes(int mat[SIZE][SIZE]);
 int isprime(int n);
-
+void *tfunc(void *args);
 int main()
 {
 	long long start_ts;
 	long long stop_ts;
 	long long elapsed_time;
 	long lElapsedTime;
+	pthread_t tid[NTHREADS];
 	struct timeval ts;
 	int i,j;
 
@@ -33,11 +35,8 @@ int main()
 	// Eliminar de la matriz todos los números que no son primos
 	// Esta es la parte que hay que paralelizar
 	
-	for(i=0;i<SIZE;i++)
-		for(j=0;j<SIZE;j++)
-			if(!isprime(mat[i][j]))
-			   mat[i][j]=0;
-	
+	for(i=0;i<NTHREADS;i++)
+		pthread_create(&tid[i],NULL,tfunc,NULL);
 	// Hasta aquí termina lo que se tiene que hacer en paralelo
 	gettimeofday(&ts, NULL);
 	stop_ts = ts.tv_sec; // Tiempo final
@@ -90,4 +89,14 @@ int isprime(int n)
 		prime=d>limit;
 	}
 	return(prime);
+}
+
+void *tfunc(void *args){
+int i,j;
+for(i=0;i<SIZE;i++)
+		for(j=0;j<SIZE;j++)
+			if(!isprime(mat[i][j]))
+			   mat[i][j]=0;
+	
+
 }
